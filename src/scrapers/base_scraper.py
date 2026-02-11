@@ -117,14 +117,17 @@ class BaseScraper(ABC):
                 
             except requests.exceptions.HTTPError as e:
                 logger.error(f"HTTP error for {url}: {e}")
-                if response.status_code == 429:  # Too many requests
-                    wait_time = self.retry_delay * (attempt + 1)
-                    logger.warning(f"Rate limited. Waiting {wait_time} seconds...")
-                    time.sleep(wait_time)
-                elif response.status_code >= 500:  # Server error
-                    if attempt < self.max_retries - 1:
-                        logger.warning(f"Server error. Retrying in {self.retry_delay} seconds...")
-                        time.sleep(self.retry_delay)
+                if hasattr(e, 'response') and e.response is not None:
+                    if e.response.status_code == 429:  # Too many requests
+                        wait_time = self.retry_delay * (attempt + 1)
+                        logger.warning(f"Rate limited. Waiting {wait_time} seconds...")
+                        time.sleep(wait_time)
+                    elif e.response.status_code >= 500:  # Server error
+                        if attempt < self.max_retries - 1:
+                            logger.warning(f"Server error. Retrying in {self.retry_delay} seconds...")
+                            time.sleep(self.retry_delay)
+                        else:
+                            return None
                     else:
                         return None
                 else:

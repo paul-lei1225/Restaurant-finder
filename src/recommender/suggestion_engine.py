@@ -168,7 +168,7 @@ class SuggestionEngine:
             if (17 <= hour < 19) or hour >= 21:
                 return True
             return False
-        except:
+        except Exception:
             return False
     
     def rank_by_availability(
